@@ -1,0 +1,746 @@
++= 00 =================================================================*
++                             I N D I C E                              
++======================================================================*
+
+   .--------------------------------+--------------------------------.
+   | 01. Bibliotecas                | 08. Bases de dados             |
+   | 02. Changeman                  | 09. Maquinas e TSO's           |
+   | 03. Comandos ISPF              | 12. Padroes de nomes da NAS    |
+   | 04. Testando IMS04             | 13. Informações extras         |
+   | 05. Dicas para montar JCLs     |                                |
+   | 06. Evt                        |                                |
+   | 07. Cics                       |                                |
+   '--------------------------------+--------------------------------'
+
+  Para ir direto para alguma seção, use o comando F '= Numero-da-seção' 
+
++= 01 =================================================================*
++                         B I B L I O T E C A S 
++======================================================================*
+
+Bibliotecas do JOBLIB :
+
+ AV.BIBGERTT		- programas em desenvolvimento
+ AV.BIBGERAL		- programas em produção
+ BI.BIBGERAL		- programas em desenvolvimento (BDN)
+ IMSVS.TST.TPGMLIB	- IMS e módulos objetos - desenvolvimento
+ IMSVS.TST.PGMLIB.VLF	- IMS e módulos objetos - produção
+ SYS1.CEE.SCEERUN	- Run time do cobol mvs e entrerprise
+ DB2A2.R2.DSNLOAD	- DB2 de desenvolvimento
+ BI.PRD.SOURCE		- biblioteca de programas, fontes, YMxx, ICVKDEPA 
+ BI.MACLIB		- biblioteca de books, books YMxx, ICVKDEPA
+ CB.PRD.COPYBKS		
+
+Bibliotecas de desenvolvimento no changeman :
+
+AD.CHGM.STAGE.CCCC.#999999.SRC(XXXXXXXX)
+	Sendo que CCCC é o centro de custo, 999999 é o numero do pacote, 
+	SRC é o tipo do componente e XXXXXXXX é o nome do componente
+
+Outras bibliotecas :
+AD.DB2.DCLGEN 			- tabelas DB2
+AD.G07.DBAS.DB2FONTE 		- vê chaves e indices das tabelas
+AD.DBII.DEFUTIL 		- utilitários DB2
+AV.CHGM.DMASTER.BSLLBX.SRC 	- programas de produção (*)
+AV.CHGM.DMASTER.BSLLB.CPY 	- copybooks de produção
+AV.CHGM.DMASTER.BSL.TXA 	- consultar o fluxo
+AV.CHGM.DMASTER.BSLLB.MFS 	- mapa de telas IMS
+AV.CHGM.DMASTER.BSLLB.MPS 	- mapa
+AD.G07.DBAS.ABEND 		- explicações sobre abends e sqlcodes
+AD.MANUAIS.UPDT.SF.ORIGINAL 	- particionado do SF manuais
+AC.JCLFILE.AL01 		- jobs alphaville
+AF.JCLFILE.AL01 		- jobs alphaville
+MX.JCLFILE.MZ01 		- jobs matriz
+MJ.JCLFILR.MZ01 		- jobs matriz
+MX.JCLFILE.AL4B 		- ambiente TH
+MP.JCLFILE.CM1 			- ambiente TI
+AV.JCLFILE 			- ambiente TU
+AC.JCLFILE 			- ambiente produção alphaville
+CD.TELON.IMSLIB 		- copybooks telon
+CD.TELON.BIBGERAL 		- copybooks telon
+AD.TELON.COPY.BIBGERAL 		- copybooks telon
+SYS2.PROCLIB 			- procs expandidas nos jobs
+
+(*) - Trocar o 'X' pela primeira letra da rotina. Para algumas rotinas da
+letra C (CADU, CAPP, etc) é preciso trocar o 'X' por 'CC'
+
+Do novo TI para jcls :
+MX.JCL2000
+AC.JCL2000
+
+Dumpmaster : 
+SA.UPG2.DUMPM.AL1.DUMPFILE.BATCH
+AL1 - pode variar conforme o ambiente, AL2A, AL2C, AL4, CA1A, MZ1, ...
+BATCH - também pode ser ONLINE ou BDF.BATCH
+
+Na sysout do job, procurar por DUMP, eventualmente aparecerá o nome
+exato da biblioteca e o numero do dump gravado.
+
+Padrão de nome de job CCCCFNNN : 
+CCCC	- centro de custo
+F	- A, C, G (diária)
+	  H (bkp diária)
+	  I a J (semanal)
+	  K (bkp semanal)
+	  L (quinzemal)
+	  M, R (intersites)
+	  N a O (mensal)
+	  P (préprod)
+	  Q (bimestral)
+	  T (trimestral)
+	  U (semestral)
+	  V (anual)
+	  X (a pedido)
+	  Z (especial)
+NNN	- numero do job
+
++= 02 =================================================================*
++                        C H A N G E M A N
++======================================================================*
+
+Travar um componente : digitar LC na frente dele
+Destravar : digitar UC (o programa tem de estar na sua chave)
+Habilitar letras minusculas no editor : CAPS OFF
+Repetir comandos no editor : SHIFT + F12
+
+Alterar a data de instalação de um pacote : U7 na frente do pacote, após
+alterar as datas apertar ENTER 2 vezes, se der PF3 cancela.
+
+Acompanhar job de freeze : PRE CMN* no SDSF
+Acompanhar job de instalação : PRE XXX#* onde XXX são as 3 primeiras 
+letras do centro de custo. Para ver em quais máquinas o pacote foi
+instalado, dar QP na frente dele e ir na opção SITE ACTIVITIES DATE 
+AND TIME.
+
+Copiar de/para PDS : 
+------------------
+Ao usar os comandos de copiar/mover trechos (CC e MM), você pode
+colocar o trecho selecionado num PDS, usando o comando CREATE 
+'AD.PDS(MEMBRO)' (se o membro já existir, use REPLACE ao invés de 
+CREATE).
+
+Da mesma forma é possível usar o comando COPY 'AD.PDS(MEMBRO)' e
+colocar A em uma linha para copiar o conteudo do membro para o programa.
+
+Compilação :
+----------
+Ao usar a opção S1 é possível jogar o componente no pacote com outro
+nome, para isso, basta informar o nome no campo 'STAGE NAME'
+
+Para compilar programas telon, sempre ir pela opção S1. Informar em
+LIBRARY TYPE 'TDF', TELON NAME o nome do telon (EX. VU0200SD) e em 
+STAGE NEMA o nome real do programa (EX. CAPP0200)
+
+Módulos que são chamados por programas online devem ter 'Y' na opção 
+BIBMODOB (biblioteca de módulos objeto)
+
+Utilitários Changeman :
+---------------------
+Para comparar programas ou arquivos, digite no menu principal a
+opção C, depois M. Entre na opção 1 e informe os arquivos a serem
+comparados. Dê PF3 e escolha a opção 2 para efetuar a comparação.
+
+Para comparar um programa em um pacote com a versão em produção, 
+digite CC na frente do pacote. Nota : para programas telon, é de
+vital importância nformar 'COBOL' no campo TEXT TYPE.
+
+Pacotes UNPLANNED e COMPLEX :
+---------------------------
+Pacote umplanned permite que se faça checkout de programa em outro pacote
+Pacote complex permite alterar include/modulo de outro centro de custo, 
+ele permite juntar pacotes de mais de um centro de custo.
+Para informar quais pacotes serão unidos pelo pacote complexo, digitar
+U6 na frente do pacote, os pacotes serão do tipo 'participativo'
+Pacote unplanned não pode ser participativo
+
++= 03 =================================================================*
++                       C O M A N D O S  I S P F
++======================================================================*
+
+Exibição : 
+--------
+HEX ON/OFF 	- exibe ou não valores hexa dos caracteres
+PFSHOW 		- altera a exibição das linhas de PFs
+REFRESH (REF) 	- atualiza listas
+SPLIT 		- inicia outra sessão e divide a tela em 2
+SWAP 		- alterna entre sessões do TSO
+SWAP LIST 	- exibe a lista das sessões abertas
+SWAP PREV/NEXT 	- vai para a sessão anterior/posterior
+SWAPBAR 	- exibe lista de sessões na parte de bauxo da tela
+
+Comandos de edição :
+------------------
+CAPS ON/OFF 	 - converte ou não as letras para maiusculo
+CUT 		 - vopia um trecho para o clipboard do TSO
+C TEXT1 TEXT2 	 - troca TEXT1 por TEX2 (apenas 1 ocorrencia)
+DEL ALL NX 	 - deleta todas as linhas não escondidas
+EXCL texto 	 - exibe apenas as linhas que não contenham texto
+F texto 	 - procura por um texto
+F PREV texto 	 - procura a ocorrencia anterior do texto
+F X'0000' 	 - procura por valor hexa
+FILL C1 C2 texto - preenche da coluna C1 à coluna C2 com o texto
+HIDE X 		 - esconde os separadores qdo há linhas ocultas
+INCL texto 	 - exibe todas as ocorrencias do texto
+L numero 	 - posiciona o cursor na linha especifica
+M 		 - vai para o iniciio (PF7) ou final (PF8) do texto
+NUM ON/OFF 	 - liga ou desliga a numeração automatica das linhas
+PASTE 		 - cola o conteudo do clipboard do TSO
+RESET 		 - retira comandos de bloco incompletos, etc
+UNDO 		 - desfaz a ultima alteração feita
+
+Nas funções que exigem uma literal como parametro, a literal deve
+estar entre aspas se ela tiver espaços.
+
+Para UNDO funcionar o recover deve estar ligado (basta digitar 
+RECOVER ON na linha de comando)
+
+Etc :
+---
+CREATE 		- cria um novo membro em um pds
+SAVE 		- salva o membro que está sendo editado
+REPLACE 	- substitui membro que já existe em um pds
+HELP 		- ajuda
+COPY membro 	- copia conteudo de membro de pds para o texto atual
+HILITE 		- altera configurações de destaque de sintaxe
+SUB 		- submete o job que está na aws
+RECOVER 	- muda a configuração da recuperação de dados
+EDSET 		- configuração do edit e view
+SETTINGS 	- configurações do ISPF
+KEYS 		- altera as funções das PFs
+CANCEL 		- fecha o membro sem salvar as alterações
+END 		- salva as alterações e fecha o membro
+START 		- inicia outra sessão do TSO
+RETRIEVE 	- traz os comandos usados anteriormente
+CRETRIEV 	- posicina o cursor na linha de comando e
+		  traz os comandos usados anteriormente
+
+Ao usar a função COPY você deve colocar 'A' ou 'B' no numero de
+uma linha. para esécificar onde o conteúdo deve ser inserido.
+Por default a função pega o membro do PDS ou lib atual. Para pegar
+de outro PDS utilize COPY 'pds(membro)'
+
+Para usar as funções CREATE e REPLACE é preciso especificar um nome
+e as linhas a serem gravadas. Por exemplo :
+Gravar um trecho de um programa - CREATE AD.CPM.J556973(PROGRAMA) .ZF .ZL
+.ZF e .ZL  funcionam como rotulos para a primeira e ultima linha
+
+Nos numeros de linhas : 
+---------------------
+C - copiar - CC para blocos
+M - mover - MM para blocos
+A - colar depois
+B - colar antes
+O - overlay (colar por cima, mesclando os conteudos das linhas)
+) - deslocar para direita - )) para blocos
+( - deslocar para esquerda - (( para blocos
+D - deletar - DD para blocos
+R - repetir - RR para blocos
+TF - formata um paragrafo
+TS - quebra a linha em 2 (posiciona o cursor no local da quebra)
+LC - converte a linha para minusculo - LCC para blocos
+UC - converte a linha para maiusculo - UCC para blocos
+AK - cola o texto na proxima linha e continua no modo de copia
+NK - cola o texto na linha anterior e continua no modo de copia
+
+PF's :
+----
+F1 - ajuda			F2 - divide a tela (split)
+F3 - confirma/retorna		F5 - repete o ultimo FIND
+F6 - repete o ultimo REPLACE	F7 - vota 1 página
+F8 - avença 1 página		F9 - alterna entre painéis (swap)
+F10 - desloca para esquerda	F11 - desloca para direita
+
+Com o comando KEYS é possível reconfigurar as PFs. É interessante
+mapear comandos como CRETRIEV (posiciona o cursor na linha de comando 
+e recupera os comandos anteriores), SWAP PREV e SWAP NEXT (para usar
+multiplas sessões de TSO)
+
+Tipos de Scroll (SCRL) : 
+----------------------
+P (PAGE) - desloca 1 tela por PF7/PF8
+c (CSR)  - PF7/PF8 vão para a posição do cursor
+numero   - PF7/PF8 movimentam o numero especificado de linhas
+
+Procurar uma determinada literal em membros de um PDS : 
+-----------------------------------------------------
+Entrar na opção 3 (utilities), 14 (Search-for)
+Em 'Search String' informar a literal a ser procurada
+Em 'Data Set Name' informar o PDS a ser pesquisado. Teclar <enter>
+Na tela seguinte marcar com S os membros que vão entrar na pesquisa, ou
+usar o comando 'SEL *' para marcar todos, depois teclar PF3
+
+Notas :  
+Colocando / na opção 'Specify aditional search strings' é possível
+pesquisar por várias literais de uma só vez. Após o <enter> será
+aberta uma janela com várias linhas, para que sejam informadas todas
+as literais.
+
+Para melhorar a performance pode-se especificar um filtro para os
+membros no campo Data Set Name. Por exemplo, se for pesquisar apenas
+em jobs do CAPP, coloque 'AC.JCLFILE.AL01(CAPP*)'
+
+Criar e manipular arquivos :
+--------------------------
+O gerenciamento de arquivos é feito na opção 3 (Utilities), através
+das sub opções :
+1 (Library)	- manipula arquivos particionados
+2 (Data Set)	- cria, renomeia e apaga arquivos
+4 (Dslist)	- lista e manipula arquivos
+
+Para criar um arquivo, entre no 2 (Data Set), informe um nome de
+arquivo que não exista (coloque aspas no inicio, ou será acrescentado
+prefixo TSO ao nome) e faça uso da opção 'A'
+
+Informe o espaço a ser alocado, formato (FB para fixo, VB para
+variável) e tamanho do registro. O block size pode ser deixado 
+em branco e é calculado automaticamente pelo sistema.
+
+Para arquivos sequenciais deixe o 'Directory blocks' com 0
+Para particionados informe um valor, quanto maior mais membros 
+o particionado poderá ter
+
+Outra possibilidade é simplesmente copiar os atributos de um arquivo
+que já exista. Para tanto após entrar na opção 2 informe o nome
+do arquivo já existente e pressione enter. Pressione PF3 e siga
+os procedimentos para criar um novo arquivo. A tela já vai vir
+preenchida com os atributos do arquivo acessado anteriormente
+
++= 04 =================================================================*
++                  T E S T A N D O  N O  I M S  0 4
++======================================================================*
+
+Quando não há programas de impressão :
+------------------------------------
+Entrar no IMS04, apagar a tela com CLEAR, (tecla PAUSE/BREAK) e
+digitar :
+/TEST MFS <ENTER>
+SENHAS <ENTER>
+CODIGO = 1, SENHA = TESTEDDS, a rotina e a opção variam
+
+Obs : ao entrar no IMS pode haver sujeiras na fila de mensagens
+do mesmo, o que faz com que coisas estranhas aconteçam. Neste caso, 
+pressione Page Up e PAge Down algumas vezes, para limpar a fila.
+
+Quando há programas de impressão : 
+--------------------------------
+Entrar no IMS04 com LOGON APPLID(IMS04)
+Limpar a tela com CLEAR e digitar :
+STIAOI <ENTER>
+TEST MFS USER NOMEIMPR <ENTER>
+<F3>
+PRT <ENTER>
+
+Colocar o nome da impressora, trocando a primeira letra por 'P' e dar
+<ENTER>, depois <F4>
+
+Com isso ele vai enviar uma página de teste para a impressora, 
+depois faça a sequencia :
+<F3>
+AOI <ENTER>
+DIS USER NOMEIMPR
+
+Se fez todos os passos corretamente, a impressora vai estar associada 
+e devera montar algo parecido com isso :
+
+  USER    USERID  ENQCT DEQCT QCT
+NOMEIMPR NOMEIMPR   1      1   0  ALLOC(NOMEIMPR)  MFST
+*2005245/154151*                  ---------------
+
+se não aparecer 'ALLOC (NOMEIMPR)' a impressora não foi associada,
+refazer todos os passos novamente.
+
+Startar/stopar transações :
+-------------------------
+Startar transações é útil quando um programa IMS abenda, pois o abend
+stopa a transação e o programa.
+
+Entrar no IMS04 apagar a tela e digitar :
+/TEST MFS <ENTER>
+SIGNON <ENTER>
+Informar o usuário e senha do Roscoe/TSO
+STIAOI <ENTER>
+
+Use então um ou mais dos seguintes comandos :
+Exibir status : 	DIS PGM XXXXNNNN
+			DIS TRAN XXXXNNNN
+Startr transações : 	STA PGM XXXXNNNN
+			STA TRAN XXXXNNNN
+Stopar transações : 	STOP PGM XXXXNNNN
+			STOP TRAN XXXXNNNN
+Mudar classe : 		ASSIGN TRAN XXXXNNNN CLASS7
+
+Startar/stopar DBs :
+------------------
+Siga os passos da sessão anterior para entrar no STIAOI. Use então 
+os seguintes comandos : 
+
+Exibir status :	DIS DBS DCIEP001.
+Startar o DB :	STA DBS DCIEP001.
+Stopar o DB : 	DBR DBS DCIEP001 NOFEOV
+
+Caso vá stopar um db não esqueça do NOFEOV
+
+Liberar impressora (para quando dá RC=04 ao tentar imprimir pelo IMS)
+------------------
+
+SIGNON
+END USER NOME-IMPRESSORA
+STA USER NOME-IMPRESSORA
+
+Importante : setar a impressora para modo teste
+
+Verificar cadastro de transações
+--------------------------------
+Entre no IMS12, limpar a tela e digitar STIGTR <enter>
+Escolha a segunda opção (GTRCA) e na tela seguinte informe o 
+sistema (ex. IMS04) e o programa
+
++= 05 =================================================================*
++               D I C A S  P A R A  M O N T A R  J C L S
++======================================================================*
+
+- O DD SYSOUT deve ser definido sempre que o programa tiver display
+  O DD SYSDUMP é usado para gerar dump em caso de abend
+
+- Se o job aparecer com 'CANCEL CI' no EVT, é algum DD errado ou linha
+  com sintaxe inválida
+
+- Para programas com pools de mestre de agencia deve-se definir um
+desses DD's, dependendo do módulo usado :
+  //MESTAG   DD   DSN=AV.MESU.MESTAGEN.NOVO(0),DISP-SHR
+  //MESTAG   DD   DSN=AV.MESTAG(0), DISP=SHR
+  //MULTBCO  DD   DSN=AV.MESU.MULTBCO(0),DISP=SHR
+
+- Para programas com sort interno, é preciso definir DDs SORTWK :
+  //SORTWK01  DD  UNIT=DISCO,SPACE=(CYL,(00008))
+  //SORTWK02  DD  UNIT=DISCO,SPACE=(CYL,(00008))
+  Se o arquivo a ser claaificado é grande, pode ser necessário definir 
+  mais DDs de SORTWK, aumentando-se a numeração (SORTWK03, etc)
+
+- É possível concatenar arquivos para serem lidos como se fossem um só :
+  //CADENTRA  DD  DSN=AD.DF97.TEMP.READ.PARTE1,DISP=SHR
+  //          DD  DSN=AD.DF97.TEMP.READ.PARTE2,DISP=SHR
+
+- Se um job abendar por falta de memória (por exemplo, carregar muitas
+ocorrências na POOL0480) adicionar REGION na primeira linha :
+  //DPCTXXXX JOB 'PBEN,4600,BN,PBEN1750',MSGCLASS=Z,CLASS=A,REGION=4M
+  O valor depois do REGION é a memória reservada para o job
+
+- Se o job tiver programas cobol MVS ou cobol enterprise, é preciso
+usar a biblioteca SYS1.CEE.SCEERUN, senão dá abend S0C4. Esses 
+abends podesm ser identificados pelo fato que quem abenda não é o 
+programa, mas sim um módulo do sistema, com nome iniciado em IGZ ou CEE.
+
+- Se for usar a saída de um step anterior, use *.step.arquivo, ex:
+  //ARQENTRA  DD  DSN=*STEP1.CADSAIDA,DISP=SHR
+
+  Para arquivos gerados em utilitários de vários steps :
+  COBUCLG : 	//ARQENTRA DD DSN=*STEP1.GO.CADSAIDA,DISP-SHR
+  SORTD :	//ARQENTRA DD DSN=*.STEP1.SRT.SORTOUT,DISP=SHR
+
+- DSNs iniciados com & são arquivos temporários, por exemplo :
+  //ARQSAIDA DD DSN=&RESULT,DISP=(,PASS),UNIT=DISCO, ...
+  Para um outro programa no mesmo job ler este arquivo :
+  //ARQENTRA DD DSN=&RESULT,DISP=(,PASS)
+
+- Para testar return conde :
+  //STEP2  EXEC  PGM=CLIE1122,COND=(00,NE,STEP1)
+  Coloca-se o retunr code a ser testado, o operador (NE para not equal, 
+  EQ para equal, GT para greater, etc) e o nome do step. Se a condição
+  especificada for verdadeira, o step NÃO vai ser executado.
+
+  Para incluir mais de uma condição :
+  //            COND=((08,EQ,STEP2),(08,EQ,STEP4))
+
+- Para usar parm extenso, que ocupa mais de uma linha :
+  //STEP1  EXEC  PGM=FLCC9021,
+  //      PARM=(22222222222222222222222222222222222222222222222,
+  //      222222222222222)
+
+  Tem que ser entre parentesis e na quebra da linha colocar uma
+  virgula (que não pode ser na coluna 72)
+
++= 06 =================================================================*
++                               E V T 
++======================================================================*
+ 
+EVT04 (EVT de desenvolvimento)
+  Programador CPM : CPM-PROG	Analista G7P : GP-AN
+  Analista    CPM : CPM-AN      Analista DBA : DBA
+  Funcionario DDS : 4253-243    4253-454
+4253-433 não precisa de senha
+
+Os códigos acima servem como usuario e senha
+
+EVTS05/EVTS12 (EVT de produção, 05-Alpha, 12-matriz)
+  Usuário 4253-243 ou 4253-454, senha igual, ou usuário 4253-251
+  senha GPFB
+
+Para imprimir um job digite E na frente do job. Acerte o endereço da
+impressora com Y na impressora local. Após enter, confirmar com Y.
+
+Para pesquisar jobs, digite .3 na linha de comando da tela de listagem.
+
+DISP CC visualiza carros de relatorios. DISP NOCC volta ao normal.
+HEX mostra os codigos hexa dos caracteres. HEX H mostra na horizontal e
+HEX OFF volta a visualização normal.
+
+Para imprimir Xerox a partir fo EVT, usar o comando 'E' na frente 
+do relatorio a ser impresso.
+
+Deve ser informada então TECNICA = P e FORM conforme abaixo.
+Na tela seguinte, repetir o FORM e limpar o campo FCB caso ele
+esteja preenchido (isso é importante, ou o job da impressão não
+irá para a impressora). Confirmar com Y na linha de comando e
+<enter> 2 vezes.
+
+Forms Xerox :
+E201 - papel carta   E108 ou ED75 - papel A4
+
+Se não funcionar, jogar na caixa 4253-408, usar ED75 para papel A4
+e, na segunda tela, informar BCNPROD1 no campo 'Destino'
+
++= 07 =================================================================*
++                              C I C S 
++======================================================================*
+
+Testar módulo CICS
+------------------
+ Entrar no AOR00M04 (ou outro cics)
+ Limpar a tela, digitar YY03 <enter>
+ Informar a chave e senha, escolher opção F e informar nome do modulo,
+ tamanho e dados da COMUAREA.
+
+Gerenciar programas, arquivos, etc
+----------------------------------
+ Entrar no AOR00M04 (ou outro cics), informar usuário e senha
+ Após login, limpar a tela e digitar CEMT <enter>
+ Será exibido um menu de comandos. Segue alguns deles :
+ CEMT I FILE - lista os aruqivos VSAM cadastrados no CICS
+ CEMT I PROG - lista os programas do CICS
+ CEMT I TRAN - lista as transações do CICS
+ CEMT I TER  - lista de terminais
+
+ É possível aplicar filtros, por exemplo :
+ CEMT I FILE(BLME*) - lista dos aruqivos BLME
+ CEMT I TER(*) OUT  - lista os terminais que estão out-of-service
+
+ Comandos com 'I' servem para listar informações, e os com 'S'
+ servem para fazer alterações :
+ CEMT S PROG(XXXXXX) ENA - dá enable (habilita) um programa.
+		 	   outras opções no lugar do ENA : 
+			   DIS - desabilita
+			   NEW - newcopy
+ CEMT S TER(CICS-ID) INS - coloca um terminal (LU) em in-service
+			   (ACQ para acquired, REL para release, 
+			    OUT para out-of-service)
+ CEMT S TRAN(XXXXXX) ENA - habilita uma transação (DIS desabilita)
+ CEMT S TAS(XXXX) PURGE  - comando para purgar uma task
+			   FORCEPURGE para forçar purge da task
+ CEMT S TCL(XX) MAX(XX)  - muda a classe das tasks
+
+Interpretador de comandos 
+-------------------------
+
+Permite executar comandos de programação cics de forma interativa.
+Entrar no AOR00M04 (ou outro cics), informar usuário e senha,.
+Após login, limpar a tela e digitar CECI <enter>
+
+Exemplos de comandos :
+CECI SEND MAP(XXXXXX) - envia mapa para a tela
+CECI REL PROG(XXXXXX) - abaixa em 1 o contador de uso do programa
+
++= 08 =================================================================*
++                       B A S E S  D E  D A D O S 
++======================================================================*
+Para descobrir a qual departamento um usuário pertence :
+SELECT * FROM DB2PRD.SENH_CAD_USU_BRAD
+WHERE CODIGO_UBD = '  E4798'
+
+Tem que estar alinhado à direita, se o primeiro caracter for um
+numero, deve ser substituido pela letra correspondente.
+
+Para descobrir o tablespace das tabelas :
+SELECT * FROM DB2PRD.DBAS_SYSTABLES
+WHERE NAME LIKE 'TITULO%'
+
+VEr dados de clientes em desenvolvimento : entrar no IMS04, rotina
+CLIE, opção 1
+
+Ver dados de agencia ou departamento : entrar no IMS04, rotina MESU, 
+opção 22. Escolher 3 (consulta), informar empresa 237, o código da
+dependência desejada, e opção 1.
+
+Queries para identificar opções no menu de senhas :
+SELECT * FROM DB2PRD.SENH_DEF_FUN_PROD
+WHERE ROTINA_DEF_PROD = 'BICF';
+SELECT * FROM DB2PRD.SENH_ROT_OPC_PROD
+WHERE TRANS_RO_PROD LIKE '%BICF%'
+
+Bases de dados corporativas (legado) :
+CEP 			CEPNV003  CEP
+Conta corrente 		CLIEV008  V01CTA_CORRENTE
+Conta poupança 		CLIEV007  V01CTA_POUPANCA
+Dados de correntista 	OBJEB000  OBJE_CLIENTES
+Dados de poupador 	OBJEB010  OBJE_CAD_POUPADOR
+
+Bases de dados corporativas (nova arquitetura) :
+Textos de emnsagens 	GMSGS001  TTEXTO_FORTC_MSGEM
+
++= 09 =================================================================*
++                   M A Q U I N A S  E  T S O ' S
++======================================================================*
+
+.-----------------.-------.---------.----------------.-----.---------. 	
+|Ambiente         | TSO   | Maquina | Indices        | EVT | IMS     |
++-----------------+-------+---------+----------------+-----+---------+
+| TU              | TS04  | AL2A    | AV             | 04  | 04 06 01|
+|                 | TS48  | AL2C    |                |     |         |
++-----------------+-------+---------+----------------+-----+---------+
+| TI              | TS56  | CM1A    | AP MP          | 56  |         |
+|                 | TS57  | CM1B    |                | 57  |         |
+|                 | TS57  | CA1A    |                | 58  |         |
++-----------------+-------+---------+----------------+-----+---------+
+| TH              | TS11  | AL4B    | AI             | 11  | A11 M11 |
++-----------------+-------+---------+----------------+-----+---------+
+| Prod Alpha      | TS31  | AL1A    | AF AC AX NA    | S05 | 05      |
+|                 | TS32  | AL1B    |                |     |         |
++-----------------+-------+---------+----------------+-----+---------+
+| Prod Matriz     | TS08  | MZ1A    | MJ MX MR IM IA | S12 | 12      |
+|                 | TS12  | MZ1B    |                |     |         |
+|                 | TS21  | MZ1C    |                |     |         |
+|                 | TS26  | MZ1D    |                |     |         |
+|                 | TS47  | MZ1W    |                |     |         |
+|                 | TS73  | MZ1X    |                |     |         |
+|                 | TS77  | MZ1Y    |                |     |         |
++-----------------+-------+---------+----------------+-----+---------+
+| Prod Matriz 2   |TS09   | MZ2     | MV             | S09 |         |
++-----------------+-------+---------+----------------+-----+---------+
+| Prod Matriz 3   | TS20  | MZ3     | MW             | S20 |         |
++-----------------+-------+---------+----------------+-----+---------+
+| Finasa          | TS114 | AL8     | FN             |     |         |
++-----------------+-------+---------+----------------+-----+---------+
+|                 | TS07  | AL5     | AM S07         |     |         |
+|                 | TS49  | AL2D 04 |                |     |         |
+|                 | TS50  | AL2E    |                | 50  | A50 M50 |
+|                 | TSOP  | ESA1    |                |     |         |
+'-----------------'-------'---------'----------------'-----'---------'
+
+- Alterar a senha da chave de rede no IMS12 e TSO's de TU e TI
+- Alterar a senha da PG em um TSO de cada ambiente (TU, TI, TH,
+  produção)
+
++= 10 =================================================================*
++              P A D R Õ E S  D E  N O M E S  D A  N A S
++======================================================================*
+
+A nomenclatura de fontes (programas) na Nova Arquitetura deve seguir
+o seguinte padrão : CCCCTSSF
+
+CCCC - as quatro primeiras posições são para o centro de custo
+
+T - determina o tipo de programa : 1 - framework - serviço coordenador
+				   2 - batch - programa offline
+				   3 - cics - serviço funcional
+				   4 - acesso a banco de dados
+
+Serviço básico 
+
+SS - sequencial de AA a 99 - pode conter letras e numeros
+
+F - determina a função do programa, a depender de T :
+Quando T = 1, F pode ser I (inclusão)		L (consulta lista)
+			 A (alteração)		M (manutenção)
+			 E (eliminação)		F (formatação canal)
+			 C (consulta detalhe)
+
+Quanto T = 2, F pode ser P (relatorio)		T (transformação)
+			 E (extração)		C (carga)
+			 B (balance line)	V (validação)
+
+Quando T = 3, F pode ser W (escrita)		A (alteração)
+			 R (leitura)		E (eliminação)
+			 K (calculo)		C (consulta detalhe)
+			 O (outros)		L (consulta lista)
+			 I (inclusão)		M (manutenção)
+
+Quanto T = 4, F pode ser S (select)		U (update)
+			 I (insert)		D (delete)
+
+Padrão para copybook / dclgen / view : CCCCTSSF
+CCCC - as 4 priemrias posições são para o centro de custo
+
+T - tipo de componente : W ou Y - copybook	B - dclgen
+			 V - view 
+
+SS - sequencial, de AA a 99
+
+F - etermina o tipo de copybook :
+Quando T = W, F pode ser V - variáveis		E - entrada
+			 K - constantes		S - saida
+			 W - outros		A - arquivos
+			 I - interfaces		D - dclgen
+			 P - procedure division C - comunicação
+
+Quando F = E ou S, o numero sequencial será igual a terminação do
+programa serviço de aplicação tipo framework que lhe corresponde.
+
+Quando F = I o numero sequencial será igual a terminação do programa
+serviço de aplicação tipo cics que lhe corresponde.
+
+Quando F = C o numero sequencial será igual a terminação do programa
+serviço acesso a dados que lhe corresponde.
+
+O book de constantes (K) deve ser unico para um centro de custo.
+
++= 11 =================================================================*
++                    I N F O R M A Ç Õ E S  E X T R A S
++======================================================================*
+Email
+-----
+Para enviar email  para fora do banco, mandar o email para o
+endereço 4253.atto@bradesco.com.br (4253/495 - GP95 - ATEND TECNICO &
+OPERACIONAL), pedindo que o mesmo seja encaminhado para outro endereço.
+
+Pastas de Aplicativos
+---------------------
+Todos estão na pasta \\d4253a13s001\Servmaster\Softwares
+DicMaxi     - \Aplicativos Servidor\DicMaxi
+Office 2000 - \_Suporte\Microsoft Office
+Zip Central - \_Suporte\Zip Central
+
+Ver schedule de net
+-------------------
+Entrar no TSO com chave PG, entrar no 108 - CTMR, opção 2
+
+No Library, coloque o PDS onde está a chedule da net :
+XX.CTMR.PRYY.SCHEFILE/SCHETRAN, onde :
+XX é o prefixo do ambiente da máquino (AV, MP, AP, MX, etc)
+YY é o numero do grupo de processamento da rotina (*)
+
+Após abrir a schedule, localize a net desejada e dê B na frente
+dela. Depois dê S na frente de um job.
+
+(*) para obter o grupo de processamento, ir na opção 167 do TSO, depois
+em Rotinas. Informar o centro de custo, e na tela seguinte, teclar
+PF11. O GR.PROC é o grupo de processamento.
+
+Etc
+---
+
+Manuais (pools, abends, modulos, etc) :
+http://intrads/manuais/novoMapaManIe.asp
+
+Servidores Exchange : MZ-VS-EX-001D
+		      MZ-IW-EX-103B.corpr.bradesco.com.br
+		      Casarray01.corpr.bradesco.com.br
+
+IPs do Telnet : 10.184.133.4 / 10.184.133.206 / 192.168.10.227
+ou pelo endereço : al2a.net.bradesco.com.br
+
+Acessar Intrads na Matriz : https://10.243.145.5/comunicacao/home.asp
+Servidor de login : D4253A13D01
+Servidor do PublicoGeral : \\AD-VW-AP-055\SERVMASTER\
+			ou \\D4253A13S001\SERVMASTER\
+Pastas de rede : \\D4253S002\
+
